@@ -1,16 +1,24 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 
 import { PokemonList } from '@/components/PokemonList';
 import { usePokemonList } from '@/hooks/UsePokemonList';
 import type { PokemonListItem } from '@/types/Pokemon';
 
+function getPokemonIdFromUrl(url: string): string {
+  const cleaned = url.endsWith('/') ? url.slice(0, -1) : url;
+  const parts = cleaned.split('/');
+  return parts[parts.length - 1] ?? '';
+}
+
 export default function IndexScreen() {
+  const router = useRouter();
   const { data, isLoading, isError, errorMessage, refetch } = usePokemonList(20);
 
   const handleSelect = (pokemon: PokemonListItem) => {
-    // Step 2: navigate to /pokemon/[id]
-    console.log('selected', pokemon.name, pokemon.url)
+    const id = getPokemonIdFromUrl(pokemon.url);
+    router.push(`/pokemon/${id}`);
   };
 
   return (

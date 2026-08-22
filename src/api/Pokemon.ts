@@ -1,7 +1,7 @@
-import type { PokemonListResponse } from '@/types/Pokemon';
+import type { PokemonDetail, PokemonListResponse } from '@/types/Pokemon';
 import { getJson } from '@/api/http';
 
-export const POKEMON_BASE_URL = 'https://pokeapi.co/api/v2/';
+export const POKEMON_BASE_URL = 'https://pokeapi.co/api/v2';
 
 export type GetPokemonListParams = {
     limit?: number;
@@ -20,4 +20,23 @@ export function getPokemonList(
     url.searchParams.set('offset', String(offset));
 
     return getJson<PokemonListResponse>(url.toString(), { signal: params.signal });
+}
+
+export function getPokemonDetailUrl(idOrName: string): string {
+  return `${POKEMON_BASE_URL}/pokemon/${idOrName}/`;
+}
+
+export type GetPokemonDetailParams = {
+  idOrName: string;
+  signal?: AbortSignal;
+};
+
+/**
+ * Repository: detail fetch. Screens/hooks never call fetch directly.
+ */
+export function getPokemonDetail(
+  params: GetPokemonDetailParams,
+): Promise<PokemonDetail> {
+  const url = getPokemonDetailUrl(params.idOrName);
+  return getJson<PokemonDetail>(url, { signal: params.signal });
 }
