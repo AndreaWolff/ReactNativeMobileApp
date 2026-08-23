@@ -1,10 +1,11 @@
-import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { usePokemonDetail } from '@/hooks/UsePokemonDetail';
 import { formatName } from '@/components/PokemonListItem';
 import { formatHeight, formatWeight } from '@/utils/PokemonFormat';
+import { PokemonSpriteSection } from '@/components/PokemonSpriteSection';
 
 export default function PokemonDetailScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
@@ -40,7 +41,7 @@ export default function PokemonDetailScreen() {
         )
     }
 
-    const spriteUrl = data.sprites.front_default;
+    // const spriteUrl = data.sprites.front_default;
 
     return (
         <>
@@ -49,61 +50,54 @@ export default function PokemonDetailScreen() {
                     title: data ? formatName(data.name) : 'Pokemon',
                 }}
             />
-            <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-                <ScrollView contentContainerStyle={styles.content}>
-                    {spriteUrl ? (
-                        <Image
-                            source={{ uri: spriteUrl }}
-                            style={styles.sprite}
-                            accessibilityLabel={`${data.name} sprite`}
-                        />
-                    ) : (
-                        <View style={[styles.sprite, styles.spritePlaceholder]}>
-                            <Text style={styles.placeholderText}>No sprite</Text>
+            {/* <SafeAreaView style={styles.safe} edges={['top', 'bottom']}> */}
+            <ScrollView contentContainerStyle={styles.content}>
+                <PokemonSpriteSection
+                    name={formatName(data.name)}
+                    sprites={data.sprites}
+                />
+
+                <Text style={styles.name}>{formatName(data.name)}</Text>
+                <Text style={styles.id}>#{String(data.id).padStart(3, '0')}</Text>
+
+                <View style={styles.row}>
+                    {data.types.map((t) => (
+                        <View key={t.type.name} style={styles.typeChip}>
+                            <Text style={styles.typeText}>{formatName(t.type.name)}</Text>
                         </View>
+                    ))}
+                </View>
+
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Size</Text>
+                    <Text style={styles.body}>Height: {formatHeight(data.height)}</Text>
+                    <Text style={styles.body}>Weight: {formatWeight(data.weight)}</Text>
+                    {data.base_experience != null && (
+                        <Text style={styles.body}>Base EXP: {data.base_experience}</Text>
                     )}
+                </View>
 
-                    <Text style={styles.name}>{formatName(data.name)}</Text>
-                    <Text style={styles.id}>#{String(data.id).padStart(3, '0')}</Text>
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Abilities</Text>
+                    {data.abilities.map((a) => (
+                        <Text key={a.ability.name} style={styles.body}>
+                            {formatName(a.ability.name)}
+                            {a.is_hidden ? ' (hidden)' : ''}
+                        </Text>
+                    ))}
+                </View>
 
-                    <View style={styles.row}>
-                        {data.types.map((t) => (
-                            <View key={t.type.name} style={styles.typeChip}>
-                                <Text style={styles.typeText}>{formatName(t.type.name)}</Text>
-                            </View>
-                        ))}
-                    </View>
-
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Size</Text>
-                        <Text style={styles.body}>Height: {formatHeight(data.height)}</Text>
-                        <Text style={styles.body}>Weight: {formatWeight(data.weight)}</Text>
-                        {data.base_experience != null && (
-                            <Text style={styles.body}>Base EXP: {data.base_experience}</Text>
-                        )}
-                    </View>
-
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Abilities</Text>
-                        {data.abilities.map((a) => (
-                            <Text key={a.ability.name} style={styles.body}>
-                                {formatName(a.ability.name)}
-                                {a.is_hidden ? ' (hidden)' : ''}
-                            </Text>
-                        ))}
-                    </View>
-
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Base stats</Text>
-                        {data.stats.map((s) => (
-                            <View key={s.stat.name} style={styles.statRow}>
-                                <Text style={styles.statName}>{formatName(s.stat.name)}</Text>
-                                <Text style={styles.statValue}>{s.base_stat}</Text>
-                            </View>
-                        ))}
-                    </View>
-                </ScrollView>
-            </SafeAreaView>
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Base stats</Text>
+                    {data.stats.map((s) => (
+                        <View key={s.stat.name} style={styles.statRow}>
+                            <Text style={styles.statName}>{formatName(s.stat.name)}</Text>
+                            <Text style={styles.statValue}>{s.base_stat}</Text>
+                        </View>
+                    ))}
+                </View>
+            </ScrollView>
+            {/* </SafeAreaView> */}
         </>
     )
 }
@@ -152,11 +146,11 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontWeight: '600',
     },
-    sprite: {
-        width: 160,
-        height: 160,
-        marginBottom: 8,
-    },
+    // sprite: {
+    //     width: 160,
+    //     height: 160,
+    //     marginBottom: 8,
+    // },
     spritePlaceholder: {
         backgroundColor: '#f0f0f0',
         alignItems: 'center',
@@ -216,5 +210,18 @@ const styles = StyleSheet.create({
     statValue: {
         fontSize: 15,
         fontWeight: '600',
+    },
+    spriteContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginVertical: 16,
+        // optional soft background
+        backgroundColor: '#f0f0f0',
+        borderRadius: 16,
+        padding: 16,
+    },
+    sprite: {
+        width: 180,
+        height: 180,
     },
 });
