@@ -1,71 +1,30 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 
 import { getPokemonDetail } from '@/api/Pokemon';
-import type { PokemonDetail } from '@/types/Pokemon';
 
-export type PokemonDetailStatus = 'idle' | 'loading' | 'success' | 'error';
-
-export type UsePokemonDetailResult = {
-  data: PokemonDetail | null;
-  status: PokemonDetailStatus;
-  errorMessage: string | null;
-  isLoading: boolean;
-  isError: boolean;
-  refetch: () => void;
-};
-
-export function usePokemonDetail(idOrName: string | undefined): UsePokemonDetailResult {
-  const [data, setData] = useState<PokemonDetail | null>(null);
-  const [status, setStatus] = useState<PokemonDetailStatus>(() =>
-    idOrName ? 'idle' : 'error',
-  );
-  const [errorMessage, setErrorMessage] = useState<string | null>(() =>
-    idOrName ? null : 'Missing Pokemon id',
-  );
-
-  const fetchDetail = useCallback(() => {
-    if (!idOrName) {
-      setData(null);
-      setStatus('error');
-      setErrorMessage('Missing Pokemon id');
-      return () => {};
-    }
-
-    const controller = new AbortController();
-
-    setStatus('loading');
-    setErrorMessage(null);
-
-    getPokemonDetail({ idOrName, signal: controller.signal })
-      .then((response) => {
-        setData(response);
-        setStatus('success');
-      })
-      .catch((error: unknown) => {
-        if (controller.signal.aborted) return;
-        const message = error instanceof Error ? error.message : 'Failed to load Pokemon';
-        setErrorMessage(message);
-        setStatus('error');
-      });
-
-    return () => controller.abort();
-  }, [idOrName]);
-
-  useEffect(() => {
-    return fetchDetail();
-  }, [fetchDetail]);
-
-  // Public refetch must be () => void (do not expose the effect cleanup)
-  const refetch = useCallback(() => {
-    fetchDetail();
-  }, [fetchDetail]);
+export function usePokemonDetail(idOrName: string | undefined) {
+  const query = useQuery({
+    queryKey: ['pokemon', 'detail', idOrName],
+    queryFn: ({ signal }) => {
+      // Guard is mainly for TypeScript; enabled already blocks the call
+      if (!idOrName) {
+        return Promise.reject(new Error('Missing Pokemon id'));
+      }
+      return getPokemonDetail({ idOrName, signal });
+    },
+    enabled: Boolean(idOrName),
+  });
 
   return {
-    data,
-    status,
-    errorMessage,
-    isLoading: status === 'loading' || status === 'idle',
-    isError: status === 'error',
-    refetch,
+    data: query.data ?? null,
+    status: query.status,
+    errorMessage: !idOrName
+      ? 'Missing Pokemon id'
+      : query.error instanceof Error
+        ? query.error.message
+        : null,
+    isLoading: Boolean(idOrName) && query.isPending,
+    isError: !idOrName || query.isError,
+    refetch: query.refetch,
   };
 }
