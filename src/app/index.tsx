@@ -1,10 +1,12 @@
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
 import { PokemonList } from '@/components/PokemonList';
 import { usePokemonList } from '@/hooks/UsePokemonList';
 import type { PokemonListItem } from '@/types/Pokemon';
+import { LoadingState } from '@/components/LoadingState';
+import { ErrorState } from '@/components/ErrorState';
 
 function getPokemonIdFromUrl(url: string): string {
   const cleaned = url.endsWith('/') ? url.slice(0, -1) : url;
@@ -21,35 +23,32 @@ export default function IndexScreen() {
     router.push(`/pokemon/${id}`);
   };
 
-  return (
+  const shell = (body: React.ReactNode) => (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.title}>Pokedex</Text>
-        <Text style={styles.subtitle}>Hardcoded List - API next</Text>
       </View>
-
-    {isLoading ? (
-      <View style={styles.centered} accessibilityLabel="Loading Pokemon">
-          <ActivityIndicator size="large" />
-          <Text style={styles.statusText}>Loading Pokemon…</Text>
-        </View>
-    ) : isError ? (
-      <View style={styles.centered}>
-          <Text style={styles.errorTitle}>Could not load Pokemon</Text>
-          <Text style={styles.errorBody}>{errorMessage ?? 'Unknown error'}</Text>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Retry loading Pokemon"
-            onPress={refetch}
-            style={({ pressed }) => [styles.retry, pressed && styles.retryPressed]}
-          >
-            <Text style={styles.retryLabel}>Retry</Text>
-          </Pressable>
-        </View>
-    ) : (
-      <PokemonList data={data} onSelectPokemon={handleSelect} />
-    )} 
+      {body}
     </SafeAreaView>
+  )
+
+  if (isLoading) {
+    return shell(<LoadingState label="Loading Pokemon…" />)
+  }
+
+  if (isError) {
+    return shell(
+      <ErrorState
+        title="Could not load Pokemon"
+        message={errorMessage ?? 'Unknown error'}
+        onRetry={refetch}
+        retryAccessibilityLabel="Retry loading Pokemon"
+      />  
+    )
+  }
+
+  return shell(
+    <PokemonList data={data} onSelectPokemon={handleSelect} />
   )
 }
 
@@ -72,24 +71,5 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontSize: 14,
     color: '#8E8E93',
-  },
-  centered: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-    gap: 12,
-  },
-  statusText: { fontSize: 16, color: '#444' },
-  errorTitle: { fontSize: 18, fontWeight: '600' },
-  errorBody: { fontSize: 14, color: '#666', textAlign: 'center' },
-  retry: {
-    marginTop: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 8,
-    backgroundColor: '#222',
-  },
-  retryPressed: { opacity: 0.7 },
-  retryLabel: { color: '#fff', fontWeight: '600' },
+  }
 })

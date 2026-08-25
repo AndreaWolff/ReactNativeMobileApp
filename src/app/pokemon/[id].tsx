@@ -6,6 +6,8 @@ import { usePokemonDetail } from '@/hooks/UsePokemonDetail';
 import { formatName } from '@/components/PokemonListItem';
 import { formatHeight, formatWeight } from '@/utils/PokemonFormat';
 import { PokemonSpriteSection } from '@/components/PokemonSpriteSection';
+import { LoadingState } from '@/components/LoadingState';
+import { ErrorState } from '@/components/ErrorState';
 
 export default function PokemonDetailScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
@@ -14,10 +16,7 @@ export default function PokemonDetailScreen() {
     if (isLoading) {
         return (
             <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-                <View style={styles.centered} accessibilityLabel="Loading Pokemon details">
-                    <ActivityIndicator size="large" />
-                    <Text style={styles.statusText}>Loading details…</Text>
-                </View>
+                <LoadingState label="Loading Pokemon details…" />
             </SafeAreaView>
         )
     }
@@ -25,18 +24,12 @@ export default function PokemonDetailScreen() {
     if (isError || !data) {
         return (
             <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-                <View style={styles.centered}>
-                    <Text style={styles.errorTitle}>Could not load Pokemon</Text>
-                    <Text style={styles.errorBody}>{errorMessage ?? 'Unknown error'}</Text>
-                    <Pressable
-                        accessibilityRole="button"
-                        accessibilityLabel="Retry loading Pokemon details"
-                        onPress={refetch}
-                        style={({ pressed }) => [styles.retry, pressed && styles.retryPressed]}
-                    >
-                        <Text style={styles.retryLabel}>Retry</Text>
-                    </Pressable>
-                </View>
+                <ErrorState
+                    title="Could not load Pokemon details"
+                    message={errorMessage ?? 'Unknown error'}
+                    onRetry={refetch}
+                    retryAccessibilityLabel="Retry loading Pokemon details"
+                />
             </SafeAreaView>
         )
     }
