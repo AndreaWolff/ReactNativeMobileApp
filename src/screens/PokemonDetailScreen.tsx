@@ -1,5 +1,6 @@
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { useLayoutEffect } from 'react';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { usePokemonDetail } from '@/hooks/UsePokemonDetail';
@@ -8,10 +9,20 @@ import { formatHeight, formatWeight } from '@/utils/PokemonFormat';
 import { PokemonSpriteSection } from '@/components/PokemonSpriteSection';
 import { LoadingState } from '@/components/LoadingState';
 import { ErrorState } from '@/components/ErrorState';
+import type { RootStackParamList } from '@/navigation/RootNavigator';
 
-export default function PokemonDetailScreen() {
-    const { id } = useLocalSearchParams<{ id: string }>();
-    const { data, isLoading, isError, errorMessage, refetch } = usePokemonDetail(id);
+type Props = NativeStackScreenProps<RootStackParamList, 'PokemonDetail'>;
+
+export function PokemonDetailScreen({ route, navigation }: Props) {
+    const { pokemonId } = route.params;
+    const { data, isLoading, isError, errorMessage, refetch } =
+        usePokemonDetail(pokemonId);
+
+    useLayoutEffect(() => {
+        navigation.setOptions({
+            title: data ? formatName(data.name) : 'Pokemon',
+        });
+    }, [data, navigation]);
 
     if (isLoading) {
         return (
@@ -38,11 +49,6 @@ export default function PokemonDetailScreen() {
 
     return (
         <>
-            <Stack.Screen
-                options={{
-                    title: data ? formatName(data.name) : 'Pokemon',
-                }}
-            />
             {/* <SafeAreaView style={styles.safe} edges={['top', 'bottom']}> */}
             <ScrollView contentContainerStyle={styles.content}>
                 <PokemonSpriteSection

@@ -8,7 +8,8 @@
     "scheme": "rnmobileapp",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "bundleIdentifier": "com.anonymous.RNMobileApp"
     },
     "android": {
       "adaptiveIcon": {
@@ -17,14 +18,14 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.anonymous.RNMobileApp"
     },
     "web": {
-      "output": "static",
+      "output": "single",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "expo-router",
       [
         "expo-splash-screen",
         {
@@ -36,7 +37,7 @@
       "expo-image"
     ],
     "experiments": {
-      "typedRoutes": true,
+      // "typedRoutes": true,
       "reactCompiler": true
     }
   }
